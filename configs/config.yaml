@@ -1,0 +1,85 @@
+# =============================================================================
+# HOTC 2026 - HSI SAMURAI Tracking (batch evaluation / submission)
+# Configuration reference
+# -----------------------------------------------------------------------------
+# The values below mirror the defaults hard-coded in src/val.py and src/track.py
+# and the CLI flags accepted by val.py. The code reads a few environment
+# variables (HOTC_BASE_DIR, HOTC_VAL_DIR, SAMURAI_REPO_DIR); those take
+# precedence over the defaults shown here.
+# =============================================================================
+
+# ----------------------------------------------------------------------------
+# Paths  (env vars override these)
+# ----------------------------------------------------------------------------
+paths:
+  # Project root. Env: HOTC_BASE_DIR. Default: the src/ folder of this package.
+  base_dir: "<package>/src"
+  # Dataset / split roots (derived from base_dir inside val.py).
+  dataset_dir: "<base_dir>/dataset"
+  training_dir: "<base_dir>/dataset/training"
+  # Validation/eval split. Env: HOTC_VAL_DIR.
+  # Defaults to "<base_dir>/ranking 2" if present, else "<base_dir>/dataset/validation".
+  val_dir: "<base_dir>/ranking 2"
+  # Local-mode ground-truth CSV and sample submission.
+  train_csv: "<base_dir>/2026training.csv"
+  sample_submission: "<base_dir>/dataset/sample_submission.csv"
+  # Local SAMURAI / SAM2 repository ("sam2" package root). Env: SAMURAI_REPO_DIR.
+  samurai_repo_dir: "~/Nikhil/samurai_project/hotc2026_run/samurai/sam2"
+
+# ----------------------------------------------------------------------------
+# Sensors  (HSI acquisition modalities)
+# ----------------------------------------------------------------------------
+sensors:
+  active: ["vis", "nir", "rednir"]      # ACTIVE_SENSORS
+  use_grid_resample: true               # USE_GRID_RESAMPLE
+  grid_step_nm: 20.0                     # GRID_STEP_NM
+  folder_map:                            # SENSOR_FOLDER_MAP
+    vis: "HSI-VIS"
+    nir: "HSI-NIR"
+    rednir: "HSI-RedNIR"
+  config:                                # SENSOR_CFG (mosaic layout per sensor)
+    vis:    { block: 4, raw_bands: 16, keep_bands: 16 }
+    nir:    { block: 5, raw_bands: 25, keep_bands: 25 }
+    rednir: { block: 4, raw_bands: 16, keep_bands: 15 }
+  wavelengths_nm:                        # BAND_WAVELENGTH_NM (linspace ranges)
+    vis:    { start: 470.0, stop: 630.0, bands: 16 }
+    nir:    { start: 675.0, stop: 975.0, bands: 25 }
+    rednir: { start: 600.0, stop: 875.0, bands: 15 }
+
+# ----------------------------------------------------------------------------
+# Tracker
+# ----------------------------------------------------------------------------
+tracker:
+  name: "samurai_large"                  # tracker used for the submission
+  device: "cuda"                         # falls back to cpu if cuda unavailable
+  models:
+    samurai_large:
+      config: "configs/samurai/sam2.1_hiera_l.yaml"     # resolved inside the sam2 repo
+      checkpoint: "checkpoints/sam2.1_hiera_large.pt"   # relative to samurai_repo_dir
+
+# ----------------------------------------------------------------------------
+# FalseColorGen  (HSI -> 3-channel false-color RGB)
+# ----------------------------------------------------------------------------
+false_color_gen:
+  checkpoint: null              # no external checkpoint; uses default initialization
+  imagenet_normalize: true
+
+# ----------------------------------------------------------------------------
+# Evaluation / run
+# ----------------------------------------------------------------------------
+run:
+  mode: "official"          # --mode : local (fold-0 eval) | official (submission CSV)
+  workers: 1                # --workers : parallel sequences (ThreadPoolExecutor)
+  limit_seqs: 0             # --limit-seqs : 0 = all
+  max_frames: 0             # --max-frames : 0 = all frames per sequence
+  decimals: 6               # --decimals : rounding for output boxes
+
+# ----------------------------------------------------------------------------
+# Output
+# ----------------------------------------------------------------------------
+output:
+  submission_csv: "submission_ranking2.csv"   # --output (default: <base_dir>/submission_ranking2.csv)
+  # In official mode: if sample_submission.csv exists, rows are aligned to it;
+  # otherwise one row per predicted frame is written as {sensor}-{name}_{frame:04d}.
+  # If ground truth is present, AUC / DP20 / IoU / Failure are printed per sequence
+  # and aggregated (overall + per sensor).

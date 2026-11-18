@@ -1,0 +1,23 @@
+# =============================================================================
+# HOTC 2026 - HSI SAMURAI Tracking (batch eval / submission)  |  pip dependencies
+# Python 3.10+ recommended.  Install PyTorch with the CUDA build that matches
+# your driver (see https://pytorch.org). The versions below are known-good.
+# =============================================================================
+
+# --- Core deep learning ---
+torch>=2.3.1
+torchvision>=0.18.1
+
+# --- Numerics / IO / vision ---
+numpy>=1.26.0
+opencv-python>=4.9.0
+tqdm>=4.66.0
+
+# --- Data handling ---
+pandas>=2.0.0            # required (imported at module load)
+scikit-learn>=1.3.0     # required for --mode local (GroupKFold fold splitting)
+
+# --- SAMURAI / SAM2 ---
+# The SAM2 package is installed separately from the local repository:
+#   pip install -e <samurai_repo>/sam2
+# It pulls in additional deps (hydra-core, iopath, pillow, etc.).

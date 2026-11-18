@@ -1,0 +1,27 @@
+# =============================================================================
+# HOTC 2026 - HSI SAMURAI Tracking (batch eval / submission)  |  Conda environment
+# Create with:   conda env create -f environment.yml
+# Activate with: conda activate hotc2026-wc
+# After activation, install the local SAM2 package (see RUNNING_INSTRUCTIONS.md):
+#   pip install -e <samurai_repo>/sam2
+# =============================================================================
+name: hotc2026-wc
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  # --- PyTorch (GPU). Adjust pytorch-cuda to match your driver, or use the
+  #     CPU build if no GPU is available. ---
+  - pytorch>=2.3.1
+  - torchvision>=0.18.1
+  - pytorch-cuda=12.1
+  # --- Numerics / data ---
+  - numpy>=1.26.0
+  - pandas>=2.0.0
+  - scikit-learn>=1.3.0
+  - tqdm>=4.66.0
+  - pip:
+      - opencv-python>=4.9.0
